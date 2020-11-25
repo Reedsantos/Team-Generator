@@ -105,6 +105,45 @@ function addEmployee() {
             if (response.empAdd)
                 collectEmployee(addEmployee);
             else
-                newFunction();
+                writeHTMLFile();
         });
+};
+
+function writeHTMLFile() {
+    let profileHTML = fs.readFileSync("./template.html", "utf8", function (err) {
+        if (err)
+            console.log(err);
+    });
+
+    const $ = cheerio.load(profileHTML);
+
+    employees.forEach(emp => {
+        let empRole = emp.get_role();
+        let output;
+
+        if (empRole === "Manager") {
+            output = generateManagerCard(emp.name, emp.id, emp.email, emp.office_number);
+        } else if (empRole === "Intern") {
+            output = generateInternCard(emp.name, emp.id, emp.email, emp.school);
+        } else if (empRole === "Employee") {
+            output = generateEmployeeCard(emp.name, emp.id, emp.email);
+        } else if (empRole === "Engineer") {
+            output = generateEngineerCard(emp.name, emp.id, emp.email, emp.github)
+        }
+
+        $("#TeamCards").append(output);
+    });
+
+    fs.writeFile("./team_output.html", $.html(), function (err) {
+        if (err)
+            console.log(err);
+
+        openTeamFile("./team_output.html")
+    });
+}
+
+async function openTeamFile(fileName) {
+
+    await open(fileName, { wait: true });
+    console.log("Opening file");
 };
